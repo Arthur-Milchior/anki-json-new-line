@@ -104,3 +104,6 @@ venv.bak/
 .mypy_cache/
 /zip
 /newline.zip
+*~
+/jsonNewLine.zip
+/meta.json
