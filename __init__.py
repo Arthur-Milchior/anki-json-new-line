@@ -3,5 +3,6 @@
 # Based on anki code by Damien Elmes <anki@ichi2.net>
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 # Source in https://github.com/Arthur-Milchior/anki-json-new-line
-# Addon number 112201952
+# Addon 112201952
+
 from . import  newline
