@@ -4,48 +4,32 @@
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 # Source in https://github.com/Arthur-Milchior/anki-json-new-line
 import json
-import sys
-
-from aqt.addons import AddonManager, ConfigEditor
-
-# Addon number 112201952
-
+import re
 
 oldLoads = json.loads
 
 
 def newLoads(t, *args, **kwargs):
-    t = correctJson(t)
-    return oldLoads(t, *args, **kwargs)
+    t_ = correctJson(t)
+    res = oldLoads(t_, *args, **kwargs)
+    return res
 
 
 json.loads = newLoads
 
 
 def correctJson(text):
-    l = []
-    numberOfSlashOdd = False
-    numberOfQuoteOdd = False
-    for char in text:
-        if char == "\n" and numberOfQuoteOdd:
-            l.append("\\n")
-        else:
-            l.append(char)
-            if char == "\n":
-                char = "newline"
-
-        if char == "\"":
-            if not numberOfSlashOdd:
-                numberOfQuoteOdd = not numberOfQuoteOdd
-
-        if char == "\\":
-            numberOfSlashOdd = not numberOfSlashOdd
-        else:
-            numberOfSlashOdd = False
-    return "".join(l)
+    """Text, with new lines replaced by \n when inside quotes"""
+    def correctQuotedString(match):
+        string = match[0]
+        return string.replace("\n", "\\n")
+    res = re.sub(r'"(?:(?<=[^\\])(?:\\\\)*\\"|[^"])*"',
+                 correctQuotedString, text, re.M)
+    return res
 
 
 def readableJson(text):
+    """Text, where \n are replaced with new line. Unless it's preceded by a odd number of \."""
     l = []
     numberOfSlashOdd = False
     numberOfQuoteOdd = False
