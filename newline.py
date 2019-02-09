@@ -7,44 +7,39 @@
 from aqt.addons import AddonManager, ConfigEditor
 import sys
 import json
+import re
+from .debug import debug, debugFun
 
+debug("json")
 oldLoads=json.loads
 def newLoads(t,*args,**kwargs):
-    t=correctJson(t)
-    return oldLoads(t,*args,**kwargs)
+    debug(f"newLoads «{t}»")
+    t_=correctJson(t)
+    debug(f"t_ is {t_}")
+    res = oldLoads(t_,*args,**kwargs)
+    debug("res is {res}")
+    # if res is None:
+    #     print(f"«{t}» led to None")
+    #print(f"From «{t}» to «{res}»")
+    return res
 
 json.loads=newLoads
 
-def debug(text):
-    pass
 
+@debugFun
 def correctJson(text):
-    l=[]
-    numberOfSlashOdd=False
-    numberOfQuoteOdd=False
-    for char in text:
-        if char == "\n" and numberOfQuoteOdd:
-            l.append("\\n")
-            debug("adding \\n")
-        else:
-            l.append(char)
-            if char=="\n":
-                char="newline"
-            debug(f"adding {char}")
-            
-        if char == "\"":
-            if not numberOfSlashOdd:
-                numberOfQuoteOdd = not numberOfQuoteOdd
-                debug(f"numberOfQuoteOdd is now {numberOfQuoteOdd}")
-                
-        if char == "\\":
-            numberOfSlashOdd = not numberOfSlashOdd
-        else:
-            numberOfSlashOdd = False
-        debug(f"numberOfSlashOdd is now {numberOfSlashOdd}")
-    return "".join(l)
+    """Text, with new lines replaced by \n when inside quotes"""
+    def correctQuotedString(match):
+        string = match[0]
+        debug("Found string «{string}»")
+        return string.replace("\n","\\n")
+    res= re.sub(r'"(?:(?<=[^\\])(?:\\\\)*\\"|[^"])*"',correctQuotedString,text,re.M)
+    if res is None:
+        debug("«{text}» was sent to None")
+    return res
 
 def readableJson(text):
+    """Text, where \n are replaced with new line. Unless it's preceded by a odd number of \."""
     l=[]
     numberOfSlashOdd=False
     numberOfQuoteOdd=False
@@ -57,12 +52,12 @@ def readableJson(text):
             if char=="\n":
                 char="newline"
             debug(f"adding {char}")
-            
+
         if char == "\"":
             if not numberOfSlashOdd:
                 numberOfQuoteOdd = not numberOfQuoteOdd
                 debug(f"numberOfQuoteOdd is now {numberOfQuoteOdd}")
-                
+
         if char == "\\":
             numberOfSlashOdd = not numberOfSlashOdd
         else:
