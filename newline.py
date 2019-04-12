@@ -29,6 +29,8 @@ json.loads=newLoads
 @debugFun
 def correctJson(text):
     """Text, with new lines replaced by \n when inside quotes"""
+    if not isinstance(text,str):
+        return text
     def correctQuotedString(match):
         string = match[0]
         debug("Found string «{string}»")
