@@ -3,8 +3,12 @@
 # Based on anki code by Damien Elmes <anki@ichi2.net>
 # License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
 # Source in https://github.com/Arthur-Milchior/anki-json-new-line
+# Addon number 11201952
 import json
 import re
+import sys
+
+from aqt.addons import AddonManager, ConfigEditor
 
 oldLoads = json.loads
 
