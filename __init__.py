@@ -9,18 +9,14 @@ import re
 import sys
 
 from aqt.addons import AddonManager, ConfigEditor
+from aqt import gui_hooks
 
-oldLoads = json.loads
-
-
-def newLoads(t, *args, **kwargs):
-    t_ = correctJson(t)
-    res = oldLoads(t_, *args, **kwargs)
-    return res
-
-
-json.loads = newLoads
-
+not_special = '[^\\\\"]'
+escaped_quote = '\\"'
+escape_character = '\\\\'
+inside_char = f'(?:{not_special}|{escape_character}|{escaped_quote}|\n)'
+inside_string = f'(?:{inside_char}*)'
+string = f'"{inside_string}"'
 
 def correctJson(text):
     """Text, with new lines replaced by \n when inside quotes"""
@@ -29,11 +25,12 @@ def correctJson(text):
 
     def correctQuotedString(match):
         string = match[0]
-        return string.replace("\n", "\\n")
-    res = re.sub(r'"(?:(?<=[^\\])(?:\\\\)*\\"|[^"])*"',
+        ret = string.replace("\n", "\\n")
+        return ret
+    res = re.sub(string,
                  correctQuotedString, text, re.M)
     return res
-
+gui_hooks.addon_config_editor_will_save_json.append(correctJson)
 
 def readableJson(text):
     """Text, where \n are replaced with new line. Unless it's preceded by a odd number of \."""
@@ -57,11 +54,4 @@ def readableJson(text):
         else:
             numberOfSlashOdd = False
     return "".join(l)
-
-
-def updateText(self, conf):
-    self.form.editor.setPlainText(
-        readableJson(json.dumps(conf, sort_keys=True, indent=4, separators=(',', ': '))))
-
-
-ConfigEditor.updateText = updateText
+gui_hooks.addon_config_editor_will_display_json.append(readableJson)
